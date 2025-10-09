@@ -131,15 +131,14 @@ func OtelOption() fx.Option {
 		fx.Provide(
 			func(tp *sdktrace.TracerProvider) trace.TracerProvider { return tp },
 			func(r *resource.Resource, lc fx.Lifecycle, logger *zerolog.Logger) (*sdktrace.TracerProvider, error) {
-				traceExporterCtx, cancelF := context.WithTimeout(context.Background(), 5*time.Second)
-				defer cancelF()
+				traceExporterCtx := context.Background()
 
 				traceExporter, err := otelTraceExporterFromEnv(traceExporterCtx)
 				if err != nil {
 					return nil, err
 				}
 
-				traceSampler := otelTraceSamplerFromEnv()
+				traceSampler := otelTraceSamplerFromEnv(logger)
 
 				traceProvider := sdktrace.NewTracerProvider(
 					sdktrace.WithBatcher(traceExporter),
@@ -216,20 +215,32 @@ func otelResourceFromEnv(ctx context.Context) (*resource.Resource, error) {
 
 func otelTraceExporterFromEnv(ctx context.Context) (sdktrace.SpanExporter, error) {
 	protocol := os.Getenv("OTEL_EXPORTER_OTLP_PROTOCOL")
+	endpoint := os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "localhost:4317" // default according to OpenTelemetry spec
+	}
+
+	// Build exporter based on protocol
 
 	switch protocol {
 	case "grpc", "":
 		// Default is gRPC
-		return otlptracegrpc.New(ctx)
+		return otlptracegrpc.New(ctx,
+			otlptracegrpc.WithEndpoint(endpoint),
+			otlptracegrpc.WithInsecure(),
+		)
 	case "http/protobuf":
-		return otlptracehttp.New(ctx)
+		return otlptracehttp.New(ctx,
+			otlptracehttp.WithEndpoint(endpoint),
+			otlptracehttp.WithInsecure(),
+		)
 	default:
 		return nil, fmt.Errorf("unsupported OTEL_EXPORTER_OTLP_PROTOCOL: %s", protocol)
 	}
 }
 
 // otelTraceSamplerFromEnv builds a trace.Sampler based on OTEL_TRACES_SAMPLER and OTEL_TRACES_SAMPLER_ARG.
-func otelTraceSamplerFromEnv() sdktrace.Sampler {
+func otelTraceSamplerFromEnv(log *zerolog.Logger) sdktrace.Sampler {
 	name := os.Getenv("OTEL_TRACES_SAMPLER")
 	arg := os.Getenv("OTEL_TRACES_SAMPLER_ARG")
 
@@ -239,32 +250,33 @@ func otelTraceSamplerFromEnv() sdktrace.Sampler {
 	case "always_off":
 		return sdktrace.NeverSample()
 	case "traceidratio":
-		ratio := otelTraceParseRatio(arg)
+		ratio := otelTraceParseRatio(log, arg)
 		return sdktrace.TraceIDRatioBased(ratio)
 	case "parentbased_always_on":
 		return sdktrace.ParentBased(sdktrace.AlwaysSample())
 	case "parentbased_always_off":
 		return sdktrace.ParentBased(sdktrace.NeverSample())
 	case "parentbased_traceidratio":
-		ratio := otelTraceParseRatio(arg)
+		ratio := otelTraceParseRatio(log, arg)
 		return sdktrace.ParentBased(sdktrace.TraceIDRatioBased(ratio))
 	case "", "default":
 		return sdktrace.ParentBased(sdktrace.TraceIDRatioBased(1.0))
 	default:
 		// fallback to always_on with warning
-		fmt.Fprintf(os.Stderr, "tracing: unknown OTEL_TRACES_SAMPLER %q, falling back to AlwaysSample\n", name)
+		log.Warn().Str("system", "otel").Msgf("unknown OTEL_TRACES_SAMPLER %q, falling back to AlwaysSample", name)
 
 		return sdktrace.AlwaysSample()
 	}
 }
 
-func otelTraceParseRatio(s string) float64 {
+func otelTraceParseRatio(log *zerolog.Logger, s string) float64 {
 	if s == "" {
 		return 1.0
 	}
 	ratio, err := strconv.ParseFloat(s, 64)
 	if err != nil || ratio < 0 || ratio > 1 {
-		fmt.Fprintf(os.Stderr, "tracing: invalid OTEL_TRACES_SAMPLER_ARG %q, using default ratio 1.0\n", s)
+		log.Warn().Str("system", "otel").Msgf("invalid OTEL_TRACES_SAMPLER_ARG %q, using default ratio 1.0", s)
+
 		return 1.0
 	}
 	return ratio
@@ -278,13 +290,13 @@ func otelTracePropagatorFromEnv() propagation.TextMapPropagator {
 
 	propagators := []propagation.TextMapPropagator{}
 
+	// TODO: add support for b3, b3multi, xray, etc.
 	for _, p := range strings.Split(env, ",") {
 		switch strings.TrimSpace(strings.ToLower(p)) {
 		case "tracecontext":
 			propagators = append(propagators, propagation.TraceContext{})
 		case "baggage":
 			propagators = append(propagators, propagation.Baggage{})
-			// you can optionally add b3 support, etc. if you import them
 		}
 	}
 
