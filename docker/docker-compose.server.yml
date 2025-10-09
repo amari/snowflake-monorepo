@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    ports:
+      - "8081:8081"
+    depends_on:
+      - jaeger
+    environment:
+      - ENV=development
+      - OTEL_METRICS_EXPORTER=prometheus
+      - OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+      - OTEL_EXPORTER_OTLP_ENDPOINT=jaeger:4317
+      - OTEL_TRACES_SAMPLER=parentbased_traceidratio 
+      - OTEL_TRACES_SAMPLER_ARG=0.1
+      - OTEL_SERVICE_NAME=snowflake-go
+      - OTEL_RESOURCE_ATTRIBUTES=service.name=snowflake-go,service.version=0.1.0
+      - OTEL_LOG_LEVEL=debug
+      - SNOWFLAKE_LOG_FORMAT=console 
+      - SNOWFLAKE_PPROF_ENABLED=1
+      - SNOWFLAKE_GRPC_ADDR=0.0.0.0
+      - SNOWFLAKE_GRPC_PORT=8081
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.74.0
+    hostname: jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"  # For OTLP gRPC
+
+  grafana:
+    image: grafana/grafana:10.0.0
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+
+  prometheus:
+    image: prom/prometheus:v2.46.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus-data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml  # Mount the custom config
+
+volumes:
+  grafana-data:
+  prometheus-data:
