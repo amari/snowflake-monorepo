@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package snowflake.v1;
+
+import "snowflake/v1/snowflake.proto";
+
+option go_package = "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/v1;snowflakev1";
+
+// SnowflakeService provides methods to generate unique Snowflake IDs.
+service SnowflakeService {
+  // Generate the next unique Snowflake ID.
+  rpc NextSnowflake(NextSnowflakeRequest) returns (NextSnowflakeResponse);
+
+  // Generate a batch of unique Snowflake IDs.
+  rpc BatchNextSnowflake(BatchNextSnowflakeRequest) returns (BatchNextSnowflakeResponse);
+}
+
+// Request message for SnowflakeService.
+message NextSnowflakeRequest {
+  bool wait = 1; // If true, waits until a new ID can be generated if the sequence overflows.
+}
+
+// Response message for SnowflakeService.
+message NextSnowflakeResponse {
+  snowflake.v1.Snowflake snowflake = 1;
+}
+
+// Request message for batch Snowflake generation.
+message BatchNextSnowflakeRequest {
+  int32 batch_size = 1;
+  bool wait = 2; // If true, waits until new IDs can be generated if the sequence overflows.
+}
+
+// Response message for batch Snowflake generation.
+message BatchNextSnowflakeResponse {
+  repeated snowflake.v1.Snowflake snowflakes = 1;
+}

@@ -1,0 +1,6 @@
+buf.gen.yaml linguist-generated=true
+buf.lock linguist-generated=true
+gen/** linguist-generated=true
+go.sum linguist-generated=true
+node_modules/** linguist-generated=true
+yarn.lock linguist-generated=true

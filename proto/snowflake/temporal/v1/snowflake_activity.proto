@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package snowflake.temporal.v1;
+
+import "snowflake/v1/snowflake.proto";
+
+option go_package = "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/temporal/v1;snowflaketemporalv1";
+
+// Input message for Snowflake activities in Temporal workflows.
+message NextSnowflakeActivityInput {
+  // If true, the activity will wait until a Snowflake ID is available.
+  bool wait = 1;
+}
+
+// Output message for Snowflake activities in Temporal workflows.
+message NextSnowflakeActivityOutput {
+  // The generated Snowflake ID.
+  snowflake.v1.Snowflake snowflake = 1;
+}
+
+// Input message for batch Snowflake activities in Temporal workflows.
+message BatchNextSnowflakeActivityInput {
+  // The number of Snowflake IDs to generate.
+  int32 count = 1;
+
+  // If true, the activity will wait until Snowflake IDs are available.
+  bool wait = 2;
+}
+
+// Output message for batch Snowflake activities in Temporal workflows.
+message BatchNextSnowflakeActivityOutput {
+  // The generated Snowflake IDs.
+  repeated snowflake.v1.Snowflake snowflakes = 1;
+}

@@ -1,0 +1,22 @@
+version: v2
+clean: true
+plugins:
+  # BSR remote plugin
+  - remote: buf.build/protocolbuffers/go:v1.31.0
+    out: snowflake-go/internal/proto
+    opt: 
+      - paths=source_relative
+  # gRPC Go plugin
+  - remote: buf.build/grpc/go:v1.5.1
+    out: snowflake-go/internal/proto
+    opt:
+      - paths=source_relative
+  # gRPC Python plugin
+  - remote: buf.build/grpc/python:v1.75.1
+    out: gen
+  # gRPC TypeScript plugin
+  - remote: buf.build/bufbuild/es:v2.9.0
+    out: gen/es
+  # TODO: Add Rust plugin when available
+inputs:
+  - directory: proto
