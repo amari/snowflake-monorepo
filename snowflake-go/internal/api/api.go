@@ -2,6 +2,10 @@ package api
 
 import (
 	"context"
+	"errors"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	snowflakev1 "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/v1"
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/snowflake"
@@ -22,6 +26,17 @@ func NewSnowflakeServiceServer(snowflakeService *snowflake.SnowflakeService) *Sn
 func (s *SnowflakeServiceServer) NextSnowflake(ctx context.Context, req *snowflakev1.NextSnowflakeRequest) (*snowflakev1.NextSnowflakeResponse, error) {
 	id, err := s.svc.NextID(ctx, req.Wait)
 	if err != nil {
+		if errors.Is(err, snowflake.ErrSequenceOverflow) {
+			// Return a more specific error message for sequence overflow
+			// ResourceExhausted is typically used when a resource limit is hit and may require remedial action.
+			// However, for transient conditions like sequence overflow (which may resolve on retry), Unavailable is more appropriate.
+			return nil, status.Errorf(codes.Unavailable, "sequence overflow: too many IDs generated in the same millisecond")
+		}
+		if errors.Is(err, snowflake.ErrClockBackwards) {
+			// Return a more specific error message for clock going backwards
+			return nil, status.Errorf(codes.FailedPrecondition, "clock moved backwards, refusing to generate id")
+		}
+
 		return nil, err
 	}
 	return &snowflakev1.NextSnowflakeResponse{
@@ -35,6 +50,17 @@ func (s *SnowflakeServiceServer) NextSnowflake(ctx context.Context, req *snowfla
 func (s *SnowflakeServiceServer) BatchNextSnowflake(ctx context.Context, req *snowflakev1.BatchNextSnowflakeRequest) (*snowflakev1.BatchNextSnowflakeResponse, error) {
 	ids, err := s.svc.BatchNextID(ctx, int(req.BatchSize), req.Wait)
 	if err != nil {
+		if errors.Is(err, snowflake.ErrSequenceOverflow) {
+			// Return a more specific error message for sequence overflow
+			// ResourceExhausted is typically used when a resource limit is hit and may require remedial action.
+			// However, for transient conditions like sequence overflow (which may resolve on retry), Unavailable is more appropriate.
+			return nil, status.Errorf(codes.Unavailable, "sequence overflow: too many IDs generated in the same millisecond")
+		}
+		if errors.Is(err, snowflake.ErrClockBackwards) {
+			// Return a more specific error message for clock going backwards
+			return nil, status.Errorf(codes.FailedPrecondition, "clock moved backwards, refusing to generate id")
+		}
+
 		return nil, err
 	}
 
