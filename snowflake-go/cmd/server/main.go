@@ -9,6 +9,7 @@ import (
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/wiring"
 	"github.com/knadh/koanf/v2"
 	"github.com/urfave/cli/v3"
+	_ "go.uber.org/automaxprocs"
 	"go.uber.org/fx"
 )
 
