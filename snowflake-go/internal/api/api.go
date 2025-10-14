@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 
+	"go.opentelemetry.io/otel/metric"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -15,11 +16,14 @@ type SnowflakeServiceServer struct {
 	snowflakev1.UnimplementedSnowflakeServiceServer
 
 	svc snowflake.SnowflakeService
+
+	metrics *SnowflakeServiceServerMetrics
 }
 
-func NewSnowflakeServiceServer(snowflakeService *snowflake.SnowflakeService) *SnowflakeServiceServer {
+func NewSnowflakeServiceServer(snowflakeService *snowflake.SnowflakeService, metrics *SnowflakeServiceServerMetrics) *SnowflakeServiceServer {
 	return &SnowflakeServiceServer{
-		svc: *snowflakeService,
+		svc:     *snowflakeService,
+		metrics: metrics,
 	}
 }
 
@@ -39,6 +43,11 @@ func (s *SnowflakeServiceServer) NextSnowflake(ctx context.Context, req *snowfla
 
 		return nil, err
 	}
+
+	if s.metrics != nil {
+		s.metrics.SnowflakeCounter.Add(ctx, 1)
+	}
+
 	return &snowflakev1.NextSnowflakeResponse{
 		Snowflake: &snowflakev1.Snowflake{
 			Int64Value:  int64(id),
@@ -77,5 +86,13 @@ func (s *SnowflakeServiceServer) BatchNextSnowflake(ctx context.Context, req *sn
 		}
 	}
 
+	if s.metrics != nil {
+		s.metrics.SnowflakeCounter.Add(ctx, int64(len(ids)))
+	}
+
 	return resp, nil
+}
+
+type SnowflakeServiceServerMetrics struct {
+	SnowflakeCounter metric.Int64Counter
 }

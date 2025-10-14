@@ -25,10 +25,22 @@ import (
 func APIOption(cfg *config.GRPCServerConfig) fx.Option {
 	return fx.Options(
 		fx.Invoke(func(*grpc.Server) {}),
-		fx.Decorate(func(s *grpc.Server, snowflakeService *snowflake.SnowflakeService) *grpc.Server {
-			snowflakev1.RegisterSnowflakeServiceServer(s, api.NewSnowflakeServiceServer(snowflakeService))
+		fx.Decorate(func(s *grpc.Server, snowflakeService *snowflake.SnowflakeService, metrics *api.SnowflakeServiceServerMetrics) *grpc.Server {
+			snowflakev1.RegisterSnowflakeServiceServer(s, api.NewSnowflakeServiceServer(snowflakeService, metrics))
 
 			return s
+		}),
+		fx.Provide(func(mp metric.MeterProvider) (*api.SnowflakeServiceServerMetrics, error) {
+			meter := mp.Meter("snowflake-go")
+
+			snowflakeCounter, err := meter.Int64Counter("snowflakes")
+			if err != nil {
+				return nil, err
+			}
+
+			return &api.SnowflakeServiceServerMetrics{
+				SnowflakeCounter: snowflakeCounter,
+			}, nil
 		}),
 		fx.Provide(func(logger *zerolog.Logger, lc fx.Lifecycle, sd fx.Shutdowner, meterProvider metric.MeterProvider, tracerProvider trace.TracerProvider, propogrator propagation.TextMapPropagator) (*grpc.Server, error) {
 			grpcLog := logger.With().
