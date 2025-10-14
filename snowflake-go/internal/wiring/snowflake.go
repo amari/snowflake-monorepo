@@ -10,7 +10,7 @@ func SnowflakeOption(cfg *config.SnowflakeConfig) fx.Option {
 	return fx.Options(
 		fx.Provide(func() (*snowflake.SnowflakeService, error) {
 			return snowflake.NewSnowflakeService(snowflake.SnowflakeServiceOptions{
-				WorkerID: uint16(cfg.WorkerID),
+				MachineID: uint16(cfg.MachineID),
 			})
 		}),
 	)

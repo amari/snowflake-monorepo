@@ -9,7 +9,7 @@ import (
 
 func TestNewSnowflakeService(t *testing.T) {
 	options := SnowflakeServiceOptions{
-		WorkerID: 1,
+		MachineID: 1,
 	}
 
 	service, err := NewSnowflakeService(options)
@@ -17,14 +17,14 @@ func TestNewSnowflakeService(t *testing.T) {
 		t.Fatalf("Failed to create SnowflakeService: %v", err)
 	}
 
-	if service.workerID != int64(options.WorkerID) {
-		t.Errorf("Expected workerID %d, got %d", options.WorkerID, service.workerID)
+	if service.machineID != int64(options.MachineID) {
+		t.Errorf("Expected workerID %d, got %d", options.MachineID, service.machineID)
 	}
 }
 
 func TestSnowflakeServiceNextID(t *testing.T) {
 	options := SnowflakeServiceOptions{
-		WorkerID: 1,
+		MachineID: 1,
 	}
 	service, _ := NewSnowflakeService(options)
 
@@ -34,14 +34,14 @@ func TestSnowflakeServiceNextID(t *testing.T) {
 		t.Fatalf("Failed to generate next ID: %v", err)
 	}
 
-	if id.workerID() != service.workerID {
-		t.Errorf("Expected workerID %d, got %d", service.workerID, id.workerID())
+	if id.workerID() != service.machineID {
+		t.Errorf("Expected workerID %d, got %d", service.machineID, id.workerID())
 	}
 }
 
 func TestSnowflakeServiceBatchNextID(t *testing.T) {
 	options := SnowflakeServiceOptions{
-		WorkerID: 1,
+		MachineID: 1,
 	}
 	service, _ := NewSnowflakeService(options)
 
@@ -57,15 +57,15 @@ func TestSnowflakeServiceBatchNextID(t *testing.T) {
 	}
 
 	for i, id := range ids {
-		if id.workerID() != service.workerID {
-			t.Errorf("ID %d: Expected workerID %d, got %d", i, service.workerID, id.workerID())
+		if id.workerID() != service.machineID {
+			t.Errorf("ID %d: Expected workerID %d, got %d", i, service.machineID, id.workerID())
 		}
 	}
 }
 
 func TestSnowflakeServiceClockBackwards(t *testing.T) {
 	options := SnowflakeServiceOptions{
-		WorkerID: 1,
+		MachineID: 1,
 	}
 	service, _ := NewSnowflakeService(options)
 

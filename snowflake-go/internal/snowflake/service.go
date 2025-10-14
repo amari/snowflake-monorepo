@@ -7,12 +7,12 @@ import (
 )
 
 type SnowflakeServiceOptions struct {
-	// WorkerID is a unique identifier for the worker/machine (0-1023).
-	WorkerID uint16
+	// MachineID is a unique identifier for the worker/machine (0-1023).
+	MachineID uint16
 }
 
 type SnowflakeService struct {
-	workerID      int64
+	machineID     int64
 	sequence      int64
 	lastTimestamp int64
 
@@ -20,12 +20,12 @@ type SnowflakeService struct {
 }
 
 func NewSnowflakeService(options SnowflakeServiceOptions) (*SnowflakeService, error) {
-	if options.WorkerID > 1023 {
+	if options.MachineID > 1023 {
 		return nil, ErrInvalidWorkerID
 	}
 
 	return &SnowflakeService{
-		workerID: int64(options.WorkerID),
+		machineID: int64(options.MachineID),
 	}, nil
 }
 
@@ -51,7 +51,7 @@ func (s *SnowflakeService) nextID() (Snowflake, error) {
 
 	s.lastTimestamp = timestamp
 
-	return NewSnowflake(timestamp, s.workerID, s.sequence), nil
+	return NewSnowflake(timestamp, s.machineID, s.sequence), nil
 }
 
 func (s *SnowflakeService) NextID(ctx context.Context, wait bool) (Snowflake, error) {
@@ -124,7 +124,7 @@ func (s *SnowflakeService) batchNextID(n int) ([]Snowflake, error) {
 	ids := make([]Snowflake, n)
 
 	for i := range n {
-		ids[i] = NewSnowflake(timestamp, s.workerID, s.sequence+int64(i))
+		ids[i] = NewSnowflake(timestamp, s.machineID, s.sequence+int64(i))
 	}
 	s.sequence += int64(n - 1) // update sequence to last used
 
