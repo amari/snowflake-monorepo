@@ -1,7 +1,20 @@
 package config
 
 type GRPCClientConfig struct {
+	Target string `koanf:"target"`
+
 	TLS *TLSClientConfig `koanf:"tls"`
+}
+
+func DefaultGRPCClientConfig() GRPCClientConfig {
+	return GRPCClientConfig{
+		Target: "localhost:50051",
+		TLS:    nil,
+	}
+}
+
+func (c *GRPCClientConfig) Validate() error {
+	return nil
 }
 
 type GRPCServerConfig struct {

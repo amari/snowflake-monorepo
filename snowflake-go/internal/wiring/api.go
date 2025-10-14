@@ -99,3 +99,44 @@ func APIOption(cfg *config.GRPCServerConfig) fx.Option {
 		}),
 	)
 }
+
+func APIClientOption(cfg *config.GRPCClientConfig) fx.Option {
+	return fx.Options(
+		fx.Provide(func(logger *zerolog.Logger, lc fx.Lifecycle, sd fx.Shutdowner, meterProvider metric.MeterProvider, tracerProvider trace.TracerProvider, propogrator propagation.TextMapPropagator) (snowflakev1.SnowflakeServiceClient, error) {
+			grpcLog := logger.With().
+				Str(string(semconv.RPCSystemKey), semconv.RPCSystemGRPC.Value.AsString()).
+				Logger()
+
+			opts := []grpc.DialOption{
+				grpc.WithStatsHandler(otelgrpc.NewClientHandler(
+					otelgrpc.WithMeterProvider(meterProvider),
+					otelgrpc.WithPropagators(propogrator),
+					otelgrpc.WithTracerProvider(tracerProvider),
+				)),
+			}
+
+			if cfg.TLS != nil {
+				tlsConfig, err := cfg.TLS.ToTLSConfig()
+				if err != nil {
+					return nil, err
+				}
+				opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsConfig)))
+			} else {
+				opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
+			}
+
+			conn, err := grpc.NewClient(cfg.Target, opts...)
+			if err != nil {
+				return nil, err
+			}
+
+			lc.Append(fx.StopHook(conn.Close))
+
+			cli := snowflakev1.NewSnowflakeServiceClient(conn)
+
+			grpcLog.Info().Str("target", cfg.Target).Msg("connected to snowflake service")
+
+			return cli, nil
+		}),
+	)
+}
