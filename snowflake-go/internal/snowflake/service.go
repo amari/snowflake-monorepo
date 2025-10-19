@@ -33,7 +33,7 @@ func NewSnowflakeService(options SnowflakeServiceOptions) (*SnowflakeService, er
 func (s *SnowflakeService) nextID() (Snowflake, error) {
 	// This method assumes the caller has already acquired the mutex lock.
 
-	timestamp := time.Now().UnixMilli() - relativeEpoch
+	timestamp := time.Now().UnixMilli()
 
 	if timestamp < s.lastTimestamp {
 		// Clock moved backwards, refuse to generate ID
@@ -52,7 +52,7 @@ func (s *SnowflakeService) nextID() (Snowflake, error) {
 
 	s.lastTimestamp = timestamp
 
-	return NewSnowflake(timestamp, s.machineID, s.sequence), nil
+	return NewSnowflake(timestamp-relativeEpoch, s.machineID, s.sequence), nil
 }
 
 func (s *SnowflakeService) NextID(ctx context.Context, wait bool) (Snowflake, error) {
@@ -98,7 +98,7 @@ func (s *SnowflakeService) NextID(ctx context.Context, wait bool) (Snowflake, er
 func (s *SnowflakeService) batchNextID(n int) ([]Snowflake, error) {
 	// This method assumes the caller has already acquired the mutex lock.
 
-	timestamp := time.Now().UnixMilli() - relativeEpoch
+	timestamp := time.Now().UnixMilli()
 	if timestamp < s.lastTimestamp {
 		// Clock moved backwards, refuse to generate ID
 		return nil, ErrClockBackwards
@@ -124,7 +124,7 @@ func (s *SnowflakeService) batchNextID(n int) ([]Snowflake, error) {
 	ids := make([]Snowflake, n)
 
 	for i := range n {
-		ids[i] = NewSnowflake(timestamp, s.machineID, s.sequence+int64(i))
+		ids[i] = NewSnowflake(timestamp-relativeEpoch, s.machineID, s.sequence+int64(i))
 	}
 	s.sequence += int64(n - 1) // update sequence to last used
 
