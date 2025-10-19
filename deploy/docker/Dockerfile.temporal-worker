@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+
+# ---- Build stage ----
+FROM golang:1.24 AS builder
+
+# Enable Go modules and set target architecture
+ARG TARGETOS
+ARG TARGETARCH
+
+WORKDIR /app
+
+# Cache dependencies
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source
+COPY . .
+
+# Build the Go binary for the target platform
+RUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o worker ./snowflake-go/cmd/temporalworker
+
+# ---- Runtime stage ----
+FROM debian:bookworm-slim AS runner
+
+WORKDIR /app
+
+# Copy binary from builder
+COPY --from=builder /app/worker .
+
+# Run the command by default
+ENTRYPOINT ["./worker"]
