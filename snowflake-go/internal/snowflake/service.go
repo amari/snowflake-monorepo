@@ -26,6 +26,7 @@ func NewSnowflakeService(options SnowflakeServiceOptions) (*SnowflakeService, er
 
 	return &SnowflakeService{
 		machineID: int64(options.MachineID),
+		mutexCh:   make(chan struct{}, 1), // buffered, acts like a mutex
 	}, nil
 }
 
@@ -65,7 +66,6 @@ func (s *SnowflakeService) NextID(ctx context.Context, wait bool) (Snowflake, er
 		}()
 	case <-ctx.Done():
 		return 0, ctx.Err()
-	default:
 	}
 
 	// Retry loop for acquiring lock and generating ID
@@ -150,7 +150,6 @@ func (s *SnowflakeService) BatchNextID(ctx context.Context, n int, wait bool) ([
 		}()
 	case <-ctx.Done():
 		return nil, ctx.Err()
-	default:
 	}
 
 	ret := make([]Snowflake, 0, n)
