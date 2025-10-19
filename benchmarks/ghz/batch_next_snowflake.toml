@@ -1,0 +1,11 @@
+import-paths=["proto"]
+proto="proto/snowflake/v1/snowflake_service.proto"
+call="snowflake.v1.SnowflakeService/BatchNextSnowflake"
+host="0.0.0.0:8081"
+insecure=true
+concurrency=5000
+total=10000000
+connections=4
+
+[data]
+batch_size = 32

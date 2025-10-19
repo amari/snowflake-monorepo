@@ -3,3 +3,5 @@ gen/** linguist-generated=true
 go.sum linguist-generated=true
 node_modules/** linguist-generated=true
 yarn.lock linguist-generated=true
+
+benchmarks/reports/** linguist-generated=true
