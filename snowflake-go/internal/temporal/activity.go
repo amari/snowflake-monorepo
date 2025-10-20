@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	snowflaketemporalv1 "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/temporal/v1"
-	snowflakev1 "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/v1"
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/snowflake"
+	snowflaketemporalv1 "github.com/amari/snowflake-monorepo/snowflake-go/pkg/proto/snowflake/temporal/v1"
+	snowflakev1 "github.com/amari/snowflake-monorepo/snowflake-go/pkg/proto/snowflake/v1"
 	"go.temporal.io/sdk/temporal"
 )
 

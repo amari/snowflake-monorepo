@@ -4,7 +4,7 @@ package snowflake.v1;
 
 import "snowflake/v1/snowflake.proto";
 
-option go_package = "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/v1;snowflakev1";
+option go_package = "github.com/amari/snowflake-monorepo/snowflake-go/pkg/proto/snowflake/v1;snowflakev1";
 
 // SnowflakeService provides methods to generate unique Snowflake IDs.
 service SnowflakeService {

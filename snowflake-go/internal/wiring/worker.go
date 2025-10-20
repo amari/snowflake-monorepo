@@ -2,8 +2,8 @@ package wiring
 
 import (
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/config"
-	snowflakev1 "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/v1"
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/temporal"
+	snowflakev1 "github.com/amari/snowflake-monorepo/snowflake-go/pkg/proto/snowflake/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 	"go.uber.org/fx"

@@ -4,7 +4,7 @@ package snowflake.temporal.v1;
 
 import "snowflake/v1/snowflake.proto";
 
-option go_package = "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/temporal/v1;snowflaketemporalv1";
+option go_package = "github.com/amari/snowflake-monorepo/snowflake-go/pkg/proto/snowflake/temporal/v1;snowflaketemporalv1";
 
 // Input message for Snowflake activities in Temporal workflows.
 message NextSnowflakeActivityInput {

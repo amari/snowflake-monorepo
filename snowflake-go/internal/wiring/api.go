@@ -19,8 +19,8 @@ import (
 
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/api"
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/config"
-	snowflakev1 "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/v1"
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/snowflake"
+	snowflakev1 "github.com/amari/snowflake-monorepo/snowflake-go/pkg/proto/snowflake/v1"
 )
 
 func APIOption(cfg *config.GRPCServerConfig) fx.Option {
