@@ -10,6 +10,7 @@ import (
 
 	snowflakev1 "github.com/amari/snowflake-monorepo/snowflake-go/internal/proto/snowflake/v1"
 	"github.com/amari/snowflake-monorepo/snowflake-go/internal/snowflake"
+	"github.com/rs/zerolog"
 )
 
 type SnowflakeServiceServer struct {
@@ -31,12 +32,22 @@ func (s *SnowflakeServiceServer) NextSnowflake(ctx context.Context, req *snowfla
 	id, err := s.svc.NextID(ctx, req.Wait)
 	if err != nil {
 		if errors.Is(err, snowflake.ErrSequenceOverflow) {
+			if s.metrics != nil {
+				s.metrics.SequenceOverflowErrorsCounter.Add(ctx, 1)
+			}
+
 			// Return a more specific error message for sequence overflow
 			// ResourceExhausted is typically used when a resource limit is hit and may require remedial action.
 			// However, for transient conditions like sequence overflow (which may resolve on retry), Unavailable is more appropriate.
 			return nil, status.Errorf(codes.Unavailable, "sequence overflow: too many IDs generated in the same millisecond")
 		}
 		if errors.Is(err, snowflake.ErrClockBackwards) {
+			if s.metrics != nil {
+				s.metrics.ClockBackwardsErrorsCounter.Add(ctx, 1)
+			}
+
+			zerolog.Ctx(ctx).Err(err).Msg("clock moved backwards")
+
 			// Return a more specific error message for clock going backwards
 			return nil, status.Errorf(codes.FailedPrecondition, "clock moved backwards, refusing to generate id")
 		}
@@ -60,12 +71,22 @@ func (s *SnowflakeServiceServer) BatchNextSnowflake(ctx context.Context, req *sn
 	ids, err := s.svc.BatchNextID(ctx, int(req.BatchSize), req.Wait)
 	if err != nil {
 		if errors.Is(err, snowflake.ErrSequenceOverflow) {
+			if s.metrics != nil {
+				s.metrics.SequenceOverflowErrorsCounter.Add(ctx, 1)
+			}
+
 			// Return a more specific error message for sequence overflow
 			// ResourceExhausted is typically used when a resource limit is hit and may require remedial action.
 			// However, for transient conditions like sequence overflow (which may resolve on retry), Unavailable is more appropriate.
 			return nil, status.Errorf(codes.Unavailable, "sequence overflow: too many IDs generated in the same millisecond")
 		}
 		if errors.Is(err, snowflake.ErrClockBackwards) {
+			if s.metrics != nil {
+				s.metrics.ClockBackwardsErrorsCounter.Add(ctx, 1)
+			}
+
+			zerolog.Ctx(ctx).Err(err).Msg("clock moved backwards")
+
 			// Return a more specific error message for clock going backwards
 			return nil, status.Errorf(codes.FailedPrecondition, "clock moved backwards, refusing to generate id")
 		}
@@ -94,5 +115,7 @@ func (s *SnowflakeServiceServer) BatchNextSnowflake(ctx context.Context, req *sn
 }
 
 type SnowflakeServiceServerMetrics struct {
-	SnowflakeCounter metric.Int64Counter
+	SnowflakeCounter              metric.Int64Counter
+	ClockBackwardsErrorsCounter   metric.Int64Counter
+	SequenceOverflowErrorsCounter metric.Int64Counter
 }

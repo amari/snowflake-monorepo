@@ -33,13 +33,31 @@ func APIOption(cfg *config.GRPCServerConfig) fx.Option {
 		fx.Provide(func(mp metric.MeterProvider) (*api.SnowflakeServiceServerMetrics, error) {
 			meter := mp.Meter("snowflake-go")
 
-			snowflakeCounter, err := meter.Int64Counter("snowflakes")
+			snowflakeCounter, err := meter.Int64Counter("snowflakes",
+				metric.WithDescription("Total number of Snowflake IDs successfully generated"),
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			clockBackwardsErrorsCounter, err := meter.Int64Counter("snowflake_clock_backwards_errors",
+				metric.WithDescription("Number of times the Snowflake service detected the system clock moved backwards"),
+			)
+			if err != nil {
+				return nil, err
+			}
+
+			sequenceOverflowErrorsCounter, err := meter.Int64Counter("snowflake_sequence_overflow_errors",
+				metric.WithDescription("Number of times the Snowflake sequence overflowed within the same millisecond"),
+			)
 			if err != nil {
 				return nil, err
 			}
 
 			return &api.SnowflakeServiceServerMetrics{
-				SnowflakeCounter: snowflakeCounter,
+				SnowflakeCounter:              snowflakeCounter,
+				ClockBackwardsErrorsCounter:   clockBackwardsErrorsCounter,
+				SequenceOverflowErrorsCounter: sequenceOverflowErrorsCounter,
 			}, nil
 		}),
 		fx.Provide(func(logger *zerolog.Logger, lc fx.Lifecycle, sd fx.Shutdowner, meterProvider metric.MeterProvider, tracerProvider trace.TracerProvider, propogrator propagation.TextMapPropagator) (*grpc.Server, error) {
