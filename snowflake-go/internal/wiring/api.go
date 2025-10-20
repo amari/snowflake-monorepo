@@ -1,6 +1,7 @@
 package wiring
 
 import (
+	"context"
 	"net"
 	"strconv"
 
@@ -71,6 +72,12 @@ func APIOption(cfg *config.GRPCServerConfig) fx.Option {
 					otelgrpc.WithPropagators(propogrator),
 					otelgrpc.WithTracerProvider(tracerProvider),
 				)),
+				grpc.ChainUnaryInterceptor(
+					grpcZerologUnaryServerInterceptor(&grpcLog),
+				),
+				grpc.ChainStreamInterceptor(
+					grpcZerologStreamServerInterceptor(&grpcLog),
+				),
 			}
 
 			if cfg.TLS != nil {
@@ -157,4 +164,28 @@ func APIClientOption(cfg *config.GRPCClientConfig) fx.Option {
 			return cli, nil
 		}),
 	)
+}
+
+func grpcZerologUnaryServerInterceptor(log *zerolog.Logger) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		newCtx := log.WithContext(ctx)
+		return handler(newCtx, req)
+	}
+}
+
+func grpcZerologStreamServerInterceptor(log *zerolog.Logger) grpc.StreamServerInterceptor {
+	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+		newCtx := log.WithContext(ss.Context())
+		wrapped := &grpcWrappedServerStream{ServerStream: ss, ctx: newCtx}
+		return handler(srv, wrapped)
+	}
+}
+
+type grpcWrappedServerStream struct {
+	grpc.ServerStream
+	ctx context.Context
+}
+
+func (w *grpcWrappedServerStream) Context() context.Context {
+	return w.ctx
 }
