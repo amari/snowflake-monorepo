@@ -1,0 +1,18 @@
+[project]
+name = "snowflake-monorepo"
+version = "0.1.0"
+requires-python = ">=3.9"
+authors = [
+    {name = "Amari Robinson",email = "nospam@amari.codes"}
+]
+dependencies = [
+    "grpclib = "^0.4.8",
+
+    "snowflake-python"
+]
+
+[tool.uv.workspace]
+members = [
+    "snowflake-python",
+    "examples/python",
+]

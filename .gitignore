@@ -33,3 +33,9 @@ go.work.sum
 
 # Benchmarks
 benchmarks/reports/**
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd

@@ -1,0 +1,17 @@
+[project]
+name = "snowflake-python-example"
+version = "0.1.0"
+description = "An example Python project for Snowflake integration"
+authors = [
+    {name = "Amari Robinson",email = "nospam@amari.codes"}
+]
+license = "MIT"
+requires-python = ">=3.9"
+dependencies = [
+    "grpclib = "^0.4.8",
+
+    "snowflake-python"
+]
+
+[tool.uv.sources]
+snowflake-python = { workspace = true }
