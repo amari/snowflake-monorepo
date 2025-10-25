@@ -20,6 +20,27 @@ plugins:
     opt:
       - target=ts
       - import_extension=js
-  # TODO: Add Rust plugin when available
+  # gRPC Rust plugins
+  - remote: buf.build/community/neoeinstein-prost:v0.4.0
+    out: snowflake-rust/snowflake-proto/src
+    opt:
+      - bytes=.
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+      - file_descriptor_set
+  - remote: buf.build/community/neoeinstein-prost-serde:v0.3.1
+    out: snowflake-rust/snowflake-proto/src
+  - remote: buf.build/community/neoeinstein-tonic:v0.4.1
+    out: snowflake-rust/snowflake-proto/src
+    opt:
+      - compile_well_known_types
+      - extern_path=.google.protobuf=::pbjson_types
+  ## Requires the protoc-gen-prost-crate plugin to be installed locally via `cargo install protoc-gen-prost-crate`
+  - local: protoc-gen-prost-crate
+    out: snowflake-rust/snowflake-proto
+    strategy: all
+    opt:
+      - gen_crate=./snowflake-rust/Cargo.toml.tmpl
+      - no_features
 inputs:
   - directory: proto

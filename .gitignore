@@ -46,3 +46,6 @@ __pycache__/
 # Node.JS
 node_modules/
 dist/
+
+# Rust
+target/
