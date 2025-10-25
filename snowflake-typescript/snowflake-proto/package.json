@@ -1,0 +1,42 @@
+{
+  "name": "@snowflake/proto",
+  "version": "1.0.0",
+  "description": "TypeScript wrapper around generated Snowflake protobuf/gRPC files.",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    "./snowflake/v1/snowflake_pb": {
+      "import": "./dist/snowflake/v1/snowflake_pb.js",
+      "types": "./dist/snowflake/v1/snowflake_pb.d.ts"
+    },
+    "./snowflake/v1/snowflake_service_pb": {
+      "import": "./dist/snowflake/v1/snowflake_service_pb.js",
+      "types": "./dist/snowflake/v1/snowflake_service_pb.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "keywords": [
+    "grpc",
+    "protobuf",
+    "typescript",
+    "snowflake",
+    "wrapper"
+  ],
+  "author": "Amari Robinson",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "9.38.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "^2.9.0",
+    "@grpc/grpc-js": "^1.8.0",
+    "@grpc/proto-loader": "0.8.0",
+    "cpx": "^1.5.0"
+  }
+}

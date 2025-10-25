@@ -2,6 +2,7 @@ buf.lock linguist-generated=true
 gen/** linguist-generated=true
 go.sum linguist-generated=true
 node_modules/** linguist-generated=true
+pnpm-lock.yaml linguist-generated=true
 poetry.lock linguist-generated=true
 yarn.lock linguist-generated=true
 

@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "baseUrl": ".",
+    "paths": {
+      "@snowflake/proto": ["snowflake-typescript/snowflake-proto"]
+    }
+  },
+  "exclude": ["node_modules", "dist"],
+  "references": [
+      {
+          "path": "./snowflake-typescript/snowflake-proto"
+      }
+  ]
+}

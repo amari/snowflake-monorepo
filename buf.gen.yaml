@@ -16,7 +16,10 @@ plugins:
     out: snowflake-python/src/snowflake_python/proto
   # gRPC TypeScript plugin
   - remote: buf.build/bufbuild/es:v2.9.0
-    out: gen/es
+    out: snowflake-typescript/snowflake-proto/src/proto
+    opt:
+      - target=ts
+      - import_extension=js
   # TODO: Add Rust plugin when available
 inputs:
   - directory: proto

@@ -39,3 +39,10 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Typescript
+*.tsbuildinfo
+
+# Node.JS
+node_modules/
+dist/
